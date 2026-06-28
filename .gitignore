@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# IDE
+.idea/
+
+# Project data (sensitive / runtime artifacts)
+cookies.json
+log.txt
+output.xlsx
+*.log
+
+# Compiled executable
+违章查询/违章查询.exe
+违章查询/output.xlsx
+违章查询/log.txt
+违章查询/cookies.json
+*.exe
+
+# OS
+Thumbs.db
+.DS_Store
