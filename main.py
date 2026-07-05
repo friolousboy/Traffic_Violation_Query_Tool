@@ -359,19 +359,54 @@ class ViolationScraper:
         return "disabled" in classes or "nolink" in classes
 
     def _go_to_next_page(self, page: int) -> bool:
-        """尝试翻到下一页，成功返回 True，已到最后一页返回 False。"""
+        """尝试翻到下一页，成功返回 True，已到最后一页返回 False。
+
+        翻页前自动记录当前页行数和首行内容，翻页后等待数据
+        真正变化后再稳定检测，避免把旧页面的稳定状态误判为新页面。
+        """
+        # 翻页前记录当前页的快照，用于验证翻页是否真正生效
+        old_rows = self.driver.find_elements(*SELECTOR_VIOLATION_ROWS)
+        old_count = len(old_rows)
+        old_first_text = old_rows[0].text if old_rows else ""
+
+        def _page_data_changed(d) -> bool:
+            """检查页面数据是否已经变化（不再显示翻页前的内容）。"""
+            rows = d.find_elements(*SELECTOR_VIOLATION_ROWS)
+            if not rows:
+                return False  # 尚未加载出新数据
+            if len(rows) != old_count:
+                return True   # 行数变了，确认已翻页
+            # 行数相同时，比较首行内容是否变化
+            try:
+                return rows[0].text != old_first_text
+            except StaleElementReferenceException:
+                return True   # 旧 DOM 已失效，说明页面在变化
+
         def click_and_wait(el) -> bool:
             try:
                 el.click()
             except ElementClickInterceptedException:
                 self.driver.execute_script("arguments[0].click();", el)
+
+            # 等待页面数据变化，超时说明翻页点击没生效
             try:
-                WebDriverWait(self.driver, 5).until(
-                    EC.presence_of_element_located(SELECTOR_VIOLATION_ROWS)
-                )
+                WebDriverWait(self.driver, PAGE_STABLE_WAIT).until(_page_data_changed)
             except TimeoutException:
-                pass
+                return False  # 数据始终没变 → 翻页失败
+
+            # 等待新数据稳定
             self._wait_for_table_stable()
+
+            # 最终验证：稳定后数据必须真的变了。
+            # 防止 AJAX 中途闪烁（0行→部分行）被误判为翻页成功后又回退到旧数据。
+            rows_now = self.driver.find_elements(*SELECTOR_VIOLATION_ROWS)
+            if rows_now:
+                try:
+                    if len(rows_now) == old_count and rows_now[0].text == old_first_text:
+                        return False  # 数据跟翻页前完全一样 → 翻页失败
+                except StaleElementReferenceException:
+                    pass  # DOM 已刷新，确实变化了
+
             return True
 
         # 模式 1：「下一页」链接

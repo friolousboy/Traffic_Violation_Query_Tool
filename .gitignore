@@ -25,3 +25,4 @@ output.xlsx
 # OS
 Thumbs.db
 .DS_Store
+*.spec
