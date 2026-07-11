@@ -1,4 +1,8 @@
-# Python
+# Node.js
+node_modules/
+*.tgz
+
+# Python (legacy)
 __pycache__/
 *.py[cod]
 *.pyo
@@ -16,13 +20,10 @@ output.xlsx
 *.log
 
 # Compiled executable
-违章查询/违章查询.exe
-违章查询/output.xlsx
-违章查询/log.txt
-违章查询/cookies.json
+违章查询/
 *.exe
+*.spec
 
 # OS
 Thumbs.db
 .DS_Store
-*.spec

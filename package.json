@@ -1,0 +1,16 @@
+{
+  "name": "violation-query",
+  "version": "2.0.0",
+  "description": "四川省交通违章批量查询工具 — Node.js/Playwright edition",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "playwright": "^1.52.0",
+    "xlsx": "^0.18.5"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
